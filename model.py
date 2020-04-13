@@ -51,6 +51,9 @@ class TrafficFlowModel:
     def FW_solver_linesearch(self, epsilon, accuracy, criteria_type, Type):
         '''Solve the traffic flow assignment model (UE) by Frank-Wolfe algorithm
         '''
+        
+        import time
+        start = time.time()
 #        if self.__detail:
 #            print(self.__dash_line())
 #            print("TRAFFIC FLOW ASSIGN MODEL (USER EQUILIBRIUM) \nFRANK-WOLFE ALGORITHM - DETAIL OF ITERATIONS")
@@ -91,7 +94,11 @@ class TrafficFlowModel:
 #                print("Auxiliary link flow:\n%s" % self.auxiliary_link_flow)
 
             # Step 5: Check the Convergence, if FALSE, then return to Step 1
-            if self.convergence(self.link_flow, self.new_link_flow, criteria_type, accuracy):
+            con, result = self.convergence(self.link_flow, self.new_link_flow, criteria_type, accuracy)
+            end = time.time()
+            self.performance.append(con)
+            self.time.append(end - start)
+            if result:
                 if self.__detail:
                     print(self.__dash_line())
                 self.__solved = True
@@ -111,6 +118,8 @@ class TrafficFlowModel:
             ------
             self.__solved = True
         '''
+        import time
+        start = time.time()
 #        if self.__detail:
 #            print(self.__dash_line())
 #            print("TRAFFIC FLOW ASSIGN MODEL (USER EQUILIBRIUM) \nFRANK-WOLFE ALGORITHM - DETAIL OF ITERATIONS")
@@ -154,7 +163,12 @@ class TrafficFlowModel:
 #                print("Auxiliary link flow:\n%s" % self.auxiliary_link_flow)
             
             # Step 5: Check the Convergence, if FALSE, then return to Step 1
-            if self.convergence(self.link_flow, self.new_link_flow, criteria_type, accuracy):
+            con, result = self.convergence(self.link_flow, self.new_link_flow, criteria_type, accuracy)
+            end = time.time()
+            self.performance.append(con)
+            self.time.append(end - start)
+            
+            if result:
                 if self.__detail:
                     print(self.__dash_line())
                 self.__solved = True
@@ -174,6 +188,8 @@ class TrafficFlowModel:
             ------
             self.__solved = True
         '''
+        import time
+        start = time.time()
 #        if self.__detail:
 #            print(self.__dash_line())
 #            print("TRAFFIC FLOW ASSIGN MODEL (USER EQUILIBRIUM) \nFRANK-WOLFE ALGORITHM - DETAIL OF ITERATIONS")
@@ -238,7 +254,12 @@ class TrafficFlowModel:
             temp_theta = self.__bisection(self.link_flow, temp_s, epsilon)
             self.new_link_flow = (1 - temp_theta) * self.link_flow + temp_theta * temp_s
             
-            if self.convergence(self.link_flow, self.new_link_flow, criteria_type, accuracy):
+            con, result = self.convergence(self.link_flow, self.new_link_flow, criteria_type, accuracy)
+            end = time.time()
+            self.performance.append(con)
+            self.time.append(end - start)
+            
+            if result:
                 if self.__detail:
                     print(self.__dash_line())
                 self.__solved = True
@@ -256,6 +277,8 @@ class TrafficFlowModel:
     def solve_GP(self, epsilon, accuracy, criteria_type, delta, gama):
         '''Solve the user equibilium problem using path-based method based on Gaussian Projection
         '''
+        import time
+        start = time.time()
         
         self.lp = self.__network.generate_LP_matrix()
         self.paths, self.paths_category = self.__network.generate_paths_by_demands()
@@ -291,7 +314,12 @@ class TrafficFlowModel:
                     self.link_time = self.link_flow_to_link_time(self.link_flow)
                     self.remove_paths(i)
                             
-            if self.convergence(temp2, temp1, criteria_type, accuracy):
+            con, result = self.convergence(temp2, temp1, criteria_type, accuracy)
+            end = time.time()
+            self.performance.append(con)
+            self.time.append(end - start)
+            
+            if result:
                 if self.__detail:
                     print(self.__dash_line())
                 self.__solved = True
@@ -423,18 +451,18 @@ class TrafficFlowModel:
     def convergence(self, link_flow, new_link_flow, criterian_type, accuracy):
         """Decide which convergence we will use
         """
-        con1, result1 = self.__is_convergent1(link_flow, new_link_flow, accuracy)
+#        con1, result1 = self.__is_convergent1(link_flow, new_link_flow, accuracy)
         con2, result2 = self.__is_convergent2(new_link_flow, accuracy)
-        con3, result3 = self.__is_convergent3(new_link_flow, accuracy)
-        print("Criteria 1", con1, result1)
+#        con3, result3 = self.__is_convergent3(new_link_flow, accuracy)
+#        print("Criteria 1", con1, result1)
         print("Criteria 2", con2, result2)
-        print("Criteria 3", con3, result3)
-        if(criterian_type == 1):
-            return result1
+#        print("Criteria 3", con3, result3)
+#        if(criterian_type == 1):
+#            return result1
         if(criterian_type == 2):
-            return result2
-        if(criterian_type == 3):
-            return result3
+            return con2, result2
+#        if(criterian_type == 3):
+#            return result3
         
     def __is_convergent1(self, flow1, flow2, accuracy):
         ''' Regard those two link flows lists as the point

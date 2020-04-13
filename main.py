@@ -1,5 +1,5 @@
 from model import TrafficFlowModel
-import data4 as dt
+import data2 as dt
 
 # Initialize the model by data
 mod = TrafficFlowModel(dt.graph, dt.origins, dt.destinations, 
@@ -19,11 +19,80 @@ mod.disp_detail()
 # only the digit of numerical component in arrays
 mod.set_disp_precision(10)
 
-# Solve the model by Frank-Wolfe Algorithm
-#mod.FW_solver_linesearch(epsilon = 1e-4, accuracy = 1e-7, criteria_type = 3, Type = "newton")
-#mod.solve_CFW(epsilon = 1e-6, accuracy = 1e-8, criteria_type = 2, delta = 1e-2)
-#mod.solve_BFW(epsilon = 1e-8, accuracy = 1e-8, criteria_type = 2, delta = 1e-2)
-mod.solve_GP(epsilon = 1e-8, accuracy = 1e-8, criteria_type = 2, delta = 1e-2, gama = 0.25)
+#Initialize the time and performance array
+performance = []
+time = []
+accuracy = 1e-6
+epsilon = 1e-6
+criteria_type = 2
+
+# Solve the model by Frank-Wolfe Algorithm with newton line search
+mod.performance = []
+mod.time = []
+mod.FW_solver_linesearch(epsilon, accuracy, criteria_type, Type = "newton")
+performance.append(mod.performance)
+time.append(mod.time)
+
+# Solve the model by Frank-Wolfe Algorithm with bisection line search
+mod.performance = []
+mod.time = []
+mod.FW_solver_linesearch(epsilon, accuracy, criteria_type, Type = "bisection")
+performance.append(mod.performance)
+time.append(mod.time)
+
+# Solve the model by Frank-Wolfe Algorithm with golden section line search
+mod.performance = []
+mod.time = []
+mod.FW_solver_linesearch(epsilon, accuracy, criteria_type, Type = "gold_section")
+performance.append(mod.performance)
+time.append(mod.time)
+
+# Solve the model by Conjugate Frank_Wolfe Algorithm with newton line search
+mod.performance = []
+mod.time = []
+mod.solve_CFW(epsilon, accuracy, criteria_type, delta = 1e-2)
+performance.append(mod.performance)
+time.append(mod.time)
+
+# Solve the model by Biconjugate Frank_Wolfe Algorithm with newton line search
+mod.performance = []
+mod.time = []
+mod.solve_BFW(epsilon, accuracy, criteria_type, delta = 1e-2)
+performance.append(mod.performance)
+time.append(mod.time)
+
+# Solve the model by Gradient projection with golden section line search
+mod.performance = []
+mod.time = []
+mod.solve_GP(epsilon, accuracy, criteria_type, delta = 1e-2, gama = 0.25)
+performance.append(mod.performance)
+time.append(mod.time)
+
+
+fig1 = plt.figure(figsize = (10,5))
+Color = ['blue', 'orange', 'green', 'red', 'purple', 'brown']
+Label = ['FW-Newton', 'FW-Bisection', 'FW-GoldenSection', 'CFW', 'BFW', "GP"]
+#Label = ['CFW', 'BFW', "GP"]
+#Color = ['red', 'mediumpurple', 'brown']
+for i in range(len(performance)):
+    plt.plot(time[i], np.log10(performance[i]), label = Label[i], color = Color[i])
+plt.legend(bbox_to_anchor=(1, 1), loc='upper left', ncol=1, frameon = 0)
+locs, labels = plt.yticks()
+
+new_label = []
+for i in range(len(labels)):
+    if(i != len(labels) - 1):
+        text = labels[i].get_text()
+        new_label.append("10e"+text)
+fig1 = plt.figure(figsize = (7,5))
+for i in range(len(performance)):
+    plt.plot(time[i], np.log10(performance[i]), label = Label[i], color = Color[i])
+plt.yticks(locs, new_label)
+plt.xlabel('Time(secs)')
+plt.ylabel('RGAP')
+plt.legend(bbox_to_anchor=(1, 1), loc='upper left', ncol=1, frameon = 0)
+
+
 
 # Generate report to console
 mod.report()
